@@ -59,7 +59,7 @@ def create_dataloader_v1(txt, batch_size=4, max_length=256, stride=128, shuffle=
     )
     return dataloader
 
-dataloader = create_dataloader_v1(training_dataset, batch_size=1, max_length=4, stride=1, shuffle=False)
+dataloader = create_dataloader_v1(training_dataset, batch_size=8, max_length=4, stride=4, shuffle=False)
 data_iter = iter(dataloader)
 first_batch = next(data_iter)
 print(first_batch)
