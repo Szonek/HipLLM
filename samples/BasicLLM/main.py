@@ -17,9 +17,9 @@ def get_training_dataset():
         raw_text = file.read()
     return raw_text
 
-raw_text = get_training_dataset()
-print("Total number of characters: ", len(raw_text))
-print(raw_text[:98])
+training_dataset = get_training_dataset()
+print("Total number of characters: ", len(training_dataset))
+print(training_dataset[:99])
 
 
 def preprocess_text(input_str):
@@ -28,4 +28,15 @@ def preprocess_text(input_str):
     # Filter out empty strings (whitepsaces)
     split_str = [item for item in split_str if item.strip()]
     return split_str
-print(preprocess_text("Hello, world. Is this-- a test?"))
+#print(preprocess_text("Hello, world. Is this-- a test?"))
+preprocessed_dataset = preprocess_text(training_dataset)
+print("Total number of preprocessed characters: ", len(preprocessed_dataset))
+print(preprocessed_dataset[:30])
+
+def get_vocabular(input):
+    vocab = sorted(set(input))
+    return vocab
+
+all_words = get_vocabular(preprocessed_dataset)
+vocab_size = len(all_words)
+print("Vocab size: ", vocab_size)
