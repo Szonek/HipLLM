@@ -3,6 +3,9 @@ import torch
 import os
 import re
 
+TOKEN_UNKNOWN = "<|unk|>"
+TOKEN_END_OF_TEXT = "<endoftext|>"
+
 def get_training_dataset():
     file_folder = "data"
     file_name = "the-verdict.txt"
@@ -35,7 +38,7 @@ print(preprocessed_dataset[:30])
 
 def get_vocab(input):
     all_words = sorted(set(input))
-    all_words.extend(["<|endoftext|>", "<|unk|>"])
+    all_words.extend([TOKEN_END_OF_TEXT, TOKEN_UNKNOWN])
     vocab = {token:integer for integer,token in enumerate(all_words)}
     return vocab
 
@@ -46,7 +49,7 @@ for i, item in enumerate(vocab.items()):
     if i < 50 or i > vocab_size - 5:
         print(item)
 
-class SimpleTokenizerV1:
+class SimpleTokenizerV2:
     def __init__(self, vocab):
         self.str_to_int = vocab
         self.int_to_str = {i:s for s,i in vocab.items()}
@@ -56,6 +59,8 @@ class SimpleTokenizerV1:
         preprocessed = re.split(r'(\s|--|[,.:;?_!"()\'])', text)
         # Filter out empty strings (whitepsaces)
         preprocessed = [item.strip() for item in preprocessed if item.strip()]
+        # Replaces unknown words with "unknown" token
+        preprocessed = [item if item in self.str_to_int else TOKEN_UNKNOWN for item in preprocessed]
         ids = [self.str_to_int[s] for s in preprocessed]
         return ids
 
@@ -68,8 +73,11 @@ class SimpleTokenizerV1:
 
 
 
-text = """Hello It's the last he painted, you know,"
-        Mrs. Gisburn said with pardonable pride."""
-tokenizer = SimpleTokenizerV1(vocab)
+text1 = "Hello, do you like tea?"
+text2 = "In the sunlit terraces of the palace."
+text = (" " + TOKEN_END_OF_TEXT + " ").join([text1, text2])
+print(text)
+tokenizer = SimpleTokenizerV2(vocab)
 ids = tokenizer.encode(text)
+print(ids)
 print(tokenizer.decode(ids))
