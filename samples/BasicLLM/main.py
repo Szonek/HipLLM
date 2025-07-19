@@ -35,6 +35,7 @@ print(preprocessed_dataset[:30])
 
 def get_vocab(input):
     all_words = sorted(set(input))
+    all_words.extend(["<|endoftext|>", "<|unk|>"])
     vocab = {token:integer for integer,token in enumerate(all_words)}
     return vocab
 
@@ -42,10 +43,8 @@ vocab = get_vocab(preprocessed_dataset)
 vocab_size = len(vocab)    
 print("Vocab size: ", vocab_size)
 for i, item in enumerate(vocab.items()):
-    print(item)
-    if i >= 50:
-        break
-
+    if i < 50 or i > vocab_size - 5:
+        print(item)
 
 class SimpleTokenizerV1:
     def __init__(self, vocab):
@@ -69,7 +68,7 @@ class SimpleTokenizerV1:
 
 
 
-text = """It's the last he painted, you know,"
+text = """Hello It's the last he painted, you know,"
         Mrs. Gisburn said with pardonable pride."""
 tokenizer = SimpleTokenizerV1(vocab)
 ids = tokenizer.encode(text)
