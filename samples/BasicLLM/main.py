@@ -33,10 +33,15 @@ preprocessed_dataset = preprocess_text(training_dataset)
 print("Total number of preprocessed characters: ", len(preprocessed_dataset))
 print(preprocessed_dataset[:30])
 
-def get_vocabular(input):
-    vocab = sorted(set(input))
+def get_vocab(input):
+    all_words = sorted(set(input))
+    vocab = {token:integer for integer,token in enumerate(all_words)}
     return vocab
 
-all_words = get_vocabular(preprocessed_dataset)
-vocab_size = len(all_words)
+vocab = get_vocab(preprocessed_dataset)
+vocab_size = len(vocab)    
 print("Vocab size: ", vocab_size)
+for i, item in enumerate(vocab.items()):
+    print(item)
+    if i >= 50:
+        break
