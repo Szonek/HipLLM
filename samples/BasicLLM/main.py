@@ -45,3 +45,32 @@ for i, item in enumerate(vocab.items()):
     print(item)
     if i >= 50:
         break
+
+
+class SimpleTokenizerV1:
+    def __init__(self, vocab):
+        self.str_to_int = vocab
+        self.int_to_str = {i:s for s,i in vocab.items()}
+    
+    def encode(self, text):
+        # Use regex to split on whitespace or any non-word character
+        preprocessed = re.split(r'(\s|--|[,.:;?_!"()\'])', text)
+        # Filter out empty strings (whitepsaces)
+        preprocessed = [item.strip() for item in preprocessed if item.strip()]
+        ids = [self.str_to_int[s] for s in preprocessed]
+        return ids
+
+    def decode(self, ids):
+        text = " ".join([self.int_to_str[i] for i in ids])
+        # Remove spaces before punctuation
+        text = re.sub(r'\s+([,.:;?_!"()\'])', r'\1', text)
+        return text
+        
+
+
+
+text = """It's the last he painted, you know,"
+        Mrs. Gisburn said with pardonable pride."""
+tokenizer = SimpleTokenizerV1(vocab)
+ids = tokenizer.encode(text)
+print(tokenizer.decode(ids))
