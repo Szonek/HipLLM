@@ -71,5 +71,25 @@ def scaled_dot_product_attention(inputs):
     print("Attn weights: ", attn_weights_2)
     context_vector = attn_weights_2 @ values
     print("Context vector: ", context_vector)
+#scaled_dot_product_attention(inputs)
 
-scaled_dot_product_attention(inputs)
+class SelfAttention_v1(torch.nn.Module):
+    def __init__(self, d_in, d_out):
+        super().__init__()
+        self.W_query = torch.nn.Parameter(torch.rand(d_in, d_out))
+        self.W_key = torch.nn.Parameter(torch.rand(d_in, d_out))
+        self.W_value = torch.nn.Parameter(torch.rand(d_in, d_out))
+
+    def forward(self, x):
+        queries = x @ self.W_query
+        keys = x @ self.W_key
+        values = x @ self.W_value
+
+        attn_scores = queries @ keys.T
+        d_k = keys.shape[-1]
+        attn_weights = torch.softmax(attn_scores / (d_k**0.5), dim=-1)
+        context_vec = attn_weights @ values
+        return context_vec
+
+ss_v1 = SelfAttention_v1(3, 2)
+print(ss_v1(inputs))
