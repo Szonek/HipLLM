@@ -13,7 +13,8 @@ print("input shape:", inputs.shape)
 
 
 
-def simplified_attention(inputs):
+def simplified_attention(inputs): 
+    # simplest form of attention mechanism
     full_attn = True
     if full_attn:
         attn_scores = inputs @ inputs.T
@@ -39,6 +40,36 @@ def simplified_attention(inputs):
         for i, x_in in enumerate(inputs):
             context_vec_2 += attn_weights_2_tmp[i] * x_in
         print("Context vec: ", context_vec_2)
+#simplified_attention(inputs)
 
-simplified_attention(inputs)
+def scaled_dot_product_attention(inputs):
+    # scaled dot product attention (SDPA) used in popular LLMs
+    x_2 = inputs[1]
+    d_in = inputs.shape[1]
+    d_out = 2 # in GPT models this is usally the same as input dim ("d_in")
+    W_query = torch.nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
+    W_key = torch.nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
+    W_value = torch.nn.Parameter(torch.rand(d_in, d_out), requires_grad=False)
+    query_2 = x_2 @ W_query
+    key_2 = x_2 @ W_key
+    value_2 = x_2 @ W_value
+    print("query_2: ", query_2)
+    print("key_2: ", key_2)
+    print("value_2: ", value_2)
+    keys = inputs @ W_key
+    values = inputs @ W_value
+    print("keys shape:", keys.shape)
+    print("values shape:", values.shape)
 
+    attn_scores_2 = query_2 @ keys.T
+    print("Attn scores: ", attn_scores_2)
+    d_k = keys.shape[-1]
+    scale_factor = 1.0 / (d_k**0.5)  
+    # Divide by square root of key dimensions to stabilize gradients
+    # and prevents softmax from becoming too sharp when dot products are too large (>1000)
+    attn_weights_2 = torch.softmax(attn_scores_2 * scale_factor, dim=-1)
+    print("Attn weights: ", attn_weights_2)
+    context_vector = attn_weights_2 @ values
+    print("Context vector: ", context_vector)
+
+scaled_dot_product_attention(inputs)
