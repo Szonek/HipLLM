@@ -6,6 +6,8 @@ import re
 from importlib.metadata import version
 import tiktoken
 
+torch.manual_seed(123)
+print("torch version: ", version("torch"))
 print("tiktoken version: ", version("tiktoken"))
 
 def get_training_dataset():
@@ -23,8 +25,8 @@ def get_training_dataset():
     return raw_text
 
 training_dataset = get_training_dataset()
-print("Total number of characters: ", len(training_dataset))
-print(training_dataset[:99])
+#print("Total number of characters: ", len(training_dataset))
+#print(training_dataset[:99])
 
 
 class GPTDatasetV1(Dataset):
@@ -45,10 +47,9 @@ class GPTDatasetV1(Dataset):
     def __getitem__(self, idx):
         return self.input_ids[idx], self.target_ids[idx]
     
-
-def create_dataloader_v1(txt, batch_size=4, max_length=256, stride=128, shuffle=True,
+tokenizer = tiktoken.get_encoding("gpt2")
+def create_dataloader_v1(txt, tokenizer, batch_size=4, max_length=256, stride=128, shuffle=True,
                          drop_last=True, num_workers=0):
-    tokenizer = tiktoken.get_encoding("gpt2")
     dataset = GPTDatasetV1(txt, tokenizer, max_length, stride)
     dataloader = DataLoader(
         dataset,                # Dataset object
@@ -59,8 +60,26 @@ def create_dataloader_v1(txt, batch_size=4, max_length=256, stride=128, shuffle=
     )
     return dataloader
 
-dataloader = create_dataloader_v1(training_dataset, batch_size=8, max_length=4, stride=4, shuffle=False)
+batch_size = 8
+max_length = 4
+dataloader = create_dataloader_v1(txt=training_dataset, tokenizer=tokenizer, batch_size=batch_size,
+                                   max_length=max_length, stride=max_length, shuffle=False)
 data_iter = iter(dataloader)
-first_batch = next(data_iter)
-print(first_batch)
-print(next(data_iter))
+input, target = next(data_iter)
+print("Input IDs:\n", input)
+print("Input shape: ", input.shape)
+
+# embedding
+vocab_size = tokenizer.n_vocab
+output_dim = 256
+token_embedding_layer = torch.nn.Embedding(vocab_size, output_dim)
+context_length = max_length
+pos_embeddings_layer = torch.nn.Embedding(context_length, output_dim)
+pos_embeddings = pos_embeddings_layer(torch.arange(context_length))
+print("Pos embedding shape: ", pos_embeddings.shape)
+
+token_embeddings = token_embedding_layer(input)
+print("Token embedding shape: ", token_embeddings.shape)
+
+input_embeddings = token_embeddings + pos_embeddings
+print("Input embedding shape: ", input_embeddings.shape)
