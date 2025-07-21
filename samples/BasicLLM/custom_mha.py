@@ -166,7 +166,59 @@ class MultiHeadAttentionWrapper(torch.nn.Module):
     def forward(self, x):
         return torch.cat([head(x) for head in self.heads], dim=-1)
 
-mha = MultiHeadAttentionWrapper(d_in=3, d_out=2, context_length=context_length, dropout=0.0, num_heads=2)
+#mha = MultiHeadAttentionWrapper(d_in=3, d_out=2, context_length=context_length, dropout=0.0, num_heads=2)
+#context_vecs = mha(batch)
+#print("context_vecs.shape: ", context_vecs.shape)
+#print(context_vecs)
+
+
+class MultiHeadAttention(torch.nn.Module):
+    def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
+        super().__init__()
+        assert(d_out % num_heads == 0), "d_out must be divisible by num_heads"
+        self.d_out = d_out
+        self.num_heads = num_heads
+        self.head_dim = d_out // num_heads
+        self.W_query  = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_key    = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_value  = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.out_proj = torch.nn.Linear(d_out, d_out, bias=True)
+        self.dropout  = torch.nn.Dropout(dropout)
+        # buffer are automaticly moved to appropirate device (CPU or GPU), so no need to manually ensure tensors are on the same device
+        self.register_buffer('mask', torch.triu(torch.ones(context_length, context_length), diagonal=1))
+
+    def forward(self, x : torch.Tensor):
+        b, num_tokens, d_in = x.shape
+        keys    = self.W_query(x).reshape(b, num_tokens, self.num_heads, self.head_dim)
+        queries = self.W_key(x).reshape(b, num_tokens, self.num_heads, self.head_dim)
+        values  = self.W_value(x).reshape(b, num_tokens, self.num_heads, self.head_dim)
+
+        # flip num_tokens and num_heads
+        keys.transpose_(1, 2)
+        queries.transpose_(1, 2)
+        values.transpose_(1, 2)
+        
+        # compute attention for each head
+        attn_scores = keys @ queries.transpose(2, 3)
+        mask_bool = self.mask.bool() # [:num_tokens, :num_tokens]
+
+        attn_scores.masked_fill(mask_bool, -torch.inf)
+
+        d_k = keys.shape[-1]
+        attn_weights = torch.softmax(attn_scores / d_k**0.5, dim=-1)
+        attn_weights = self.dropout(attn_weights)
+        context_vec = attn_weights @ values
+         # flip back num_tokens and num_heads and reshape back
+        context_vec.transpose_(1, 2)
+        context_vec = self.out_proj(context_vec.reshape(b, num_tokens, self.d_out))
+        return context_vec
+
+d_in = 3
+d_out = 4
+num_heads = 2
+context_length = batch.shape[1]
+mha = MultiHeadAttention(d_in=d_in, d_out=d_out, context_length=context_length,
+                          dropout=0.0, num_heads=num_heads)
 context_vecs = mha(batch)
 print("context_vecs.shape: ", context_vecs.shape)
 print(context_vecs)
