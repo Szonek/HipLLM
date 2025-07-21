@@ -152,5 +152,21 @@ print(batch.shape)
 context_length = batch.shape[1]
 ca = CausalAttention(d_in=3, d_out=2, context_length=context_length, dropout=0.0)
 context_vecs = ca(batch)
-print("context_vecs.shape: ", context_vecs.shape)
+#print("context_vecs.shape: ", context_vecs.shape)
 #print(context_vecs)
+
+
+class MultiHeadAttentionWrapper(torch.nn.Module):
+    def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
+        super().__init__()
+        self.heads = torch.nn.ModuleList(
+            [CausalAttention(d_in=d_in, d_out=d_out, context_length=context_length, dropout=dropout) for i in range(num_heads)]
+        )
+    
+    def forward(self, x):
+        return torch.cat([head(x) for head in self.heads], dim=-1)
+
+mha = MultiHeadAttentionWrapper(d_in=3, d_out=2, context_length=context_length, dropout=0.0, num_heads=2)
+context_vecs = mha(batch)
+print("context_vecs.shape: ", context_vecs.shape)
+print(context_vecs)
