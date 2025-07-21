@@ -81,8 +81,9 @@ class SelfAttention_v1(torch.nn.Module):
         self.W_value = torch.nn.Parameter(torch.rand(d_in, d_out))
 
     def forward(self, x):
-        queries = x @ self.W_query
         keys = x @ self.W_key
+        
+        queries = x @ self.W_query
         values = x @ self.W_value
 
         attn_scores = queries @ keys.T
