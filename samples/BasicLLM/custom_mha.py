@@ -82,7 +82,6 @@ class SelfAttention_v1(torch.nn.Module):
 
     def forward(self, x):
         keys = x @ self.W_key
-        
         queries = x @ self.W_query
         values = x @ self.W_value
 
@@ -94,3 +93,24 @@ class SelfAttention_v1(torch.nn.Module):
 
 ss_v1 = SelfAttention_v1(3, 2)
 print(ss_v1(inputs))
+
+class SelfAttention_v2(torch.nn.Module):
+    def __init__(self, d_in, d_out, qkv_bias=False):
+        super().__init__()
+        self.W_query = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_key = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_value = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
+
+    def forward(self, x):
+        keys = self.W_key(x)   
+        queries = self.W_query(x)
+        values = self.W_value(x)
+
+        attn_scores = queries @ keys.T
+        d_k = keys.shape[-1]
+        attn_weights = torch.softmax(attn_scores / (d_k**0.5), dim=-1)
+        context_vec = attn_weights @ values
+        return context_vec
+
+ss_v2 = SelfAttention_v2(3, 2)
+print(ss_v2(inputs))
