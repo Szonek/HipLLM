@@ -128,6 +128,7 @@ class CausalAttention(torch.nn.Module):
         self.W_key   = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
         self.W_value = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
         self.dropout = torch.nn.Dropout(dropout)
+        # buffer are automaticly moved to appropirate device (CPU or GPU), so no need to manually ensure tensors are on the same device
         self.register_buffer('mask', torch.triu(torch.ones(context_length, context_length), diagonal=1))
 
     def forward(self, x):
@@ -137,7 +138,8 @@ class CausalAttention(torch.nn.Module):
         values = self.W_value(x)
 
         attn_scores = queries @ keys.transpose(1, 2)
-        attn_scores.masked_fill_(self.mask.bool()[:num_tokens, :num_tokens], -torch.inf)
+        attn_scores.masked_fill_(self.mask.bool(), -torch.inf)
+        #print(attn_scores)
         d_k = keys.shape[-1]
         attn_weights = torch.softmax(attn_scores / (d_k**0.5), dim=-1)
         attn_weights = self.dropout(attn_weights)
@@ -151,3 +153,4 @@ context_length = batch.shape[1]
 ca = CausalAttention(d_in=3, d_out=2, context_length=context_length, dropout=0.0)
 context_vecs = ca(batch)
 print("context_vecs.shape: ", context_vecs.shape)
+#print(context_vecs)
