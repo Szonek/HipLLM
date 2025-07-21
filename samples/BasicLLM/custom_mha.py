@@ -101,6 +101,10 @@ class SelfAttention_v2(torch.nn.Module):
         self.W_key = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
         self.W_value = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
 
+        self.W_query.weight.data = ss_v1.W_query.T.data
+        self.W_key.weight.data = ss_v1.W_key.T.data
+        self.W_value.weight.data = ss_v1.W_value.T.data
+
     def forward(self, x):
         keys = self.W_key(x)   
         queries = self.W_query(x)
