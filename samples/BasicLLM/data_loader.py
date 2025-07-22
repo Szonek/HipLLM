@@ -14,7 +14,7 @@ def get_training_dataset():
     file_folder = "data"
     file_name = "the-verdict.txt"
     file_path = os.path.join(file_folder, file_name)
-    if os.path.exists(file_path) is False:
+    if not os.path.exists(file_path):
         # Create directory if it doesn't exist
         os.makedirs(file_folder, exist_ok=True)
         # Download file

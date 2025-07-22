@@ -128,7 +128,7 @@ class CausalAttention(torch.nn.Module):
         self.W_key   = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
         self.W_value = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
         self.dropout = torch.nn.Dropout(dropout)
-        # buffer are automaticly moved to appropirate device (CPU or GPU), so no need to manually ensure tensors are on the same device
+        # buffers are automatically moved to appropriate  device (CPU or GPU), so no need to manually ensure tensors are on the same device
         self.register_buffer('mask', torch.triu(torch.ones(context_length, context_length), diagonal=1))
 
     def forward(self, x):
@@ -184,13 +184,13 @@ class MultiHeadAttention(torch.nn.Module):
         self.W_value  = torch.nn.Linear(d_in, d_out, bias=qkv_bias)
         self.out_proj = torch.nn.Linear(d_out, d_out, bias=True)
         self.dropout  = torch.nn.Dropout(dropout)
-        # buffer are automaticly moved to appropirate device (CPU or GPU), so no need to manually ensure tensors are on the same device
+        # buffers are automatically moved to appropriate  device (CPU or GPU), so no need to manually ensure tensors are on the same device
         self.register_buffer('mask', torch.triu(torch.ones(context_length, context_length), diagonal=1))
 
     def forward(self, x : torch.Tensor):
         b, num_tokens, d_in = x.shape
-        keys    = self.W_query(x).reshape(b, num_tokens, self.num_heads, self.head_dim)
-        queries = self.W_key(x).reshape(b, num_tokens, self.num_heads, self.head_dim)
+        queries = self.W_query(x).reshape(b, num_tokens, self.num_heads, self.head_dim)
+        keys    = self.W_key(x).reshape(b, num_tokens, self.num_heads, self.head_dim)
         values  = self.W_value(x).reshape(b, num_tokens, self.num_heads, self.head_dim)
 
         # flip num_tokens and num_heads
@@ -199,7 +199,7 @@ class MultiHeadAttention(torch.nn.Module):
         values.transpose_(1, 2)
         
         # compute attention for each head
-        attn_scores = keys @ queries.transpose(2, 3)
+        attn_scores = queries @ keys.transpose(2, 3)
         mask_bool = self.mask.bool() # [:num_tokens, :num_tokens]
 
         attn_scores.masked_fill(mask_bool, -torch.inf)
