@@ -1,5 +1,5 @@
 import torch
-torch.manual_seed(123)
+#torch.manual_seed(123)
 
 inputs = torch.tensor(
     [
@@ -9,7 +9,7 @@ inputs = torch.tensor(
         [0.22, 0.58, 0.33],
         [0.77, 0.25, 0.10],
         [0.05, 0.80, 0.55]])
-print("input shape:", inputs.shape)
+#print("input shape:", inputs.shape)
 
 
 
@@ -147,11 +147,11 @@ class CausalAttention(torch.nn.Module):
         return context_vec
     
 
-batch = torch.stack([inputs, inputs], dim=0)
-print(batch.shape)
-context_length = batch.shape[1]
-ca = CausalAttention(d_in=3, d_out=2, context_length=context_length, dropout=0.0)
-context_vecs = ca(batch)
+#batch = torch.stack([inputs, inputs], dim=0)
+#print(batch.shape)
+#context_length = batch.shape[1]
+#ca = CausalAttention(d_in=3, d_out=2, context_length=context_length, dropout=0.0)
+#context_vecs = ca(batch)
 #print("context_vecs.shape: ", context_vecs.shape)
 #print(context_vecs)
 
@@ -214,9 +214,9 @@ class MultiHeadAttention(torch.nn.Module):
         return context_vec
 
 d_in = 3
-d_out = 4
+d_out = 2
 num_heads = 2
-context_length = batch.shape[1]
+batch_size, context_length, d_in = batch.shape
 mha = MultiHeadAttention(d_in=d_in, d_out=d_out, context_length=context_length,
                           dropout=0.0, num_heads=num_heads)
 context_vecs = mha(batch)
