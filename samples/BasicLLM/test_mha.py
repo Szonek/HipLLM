@@ -1,12 +1,14 @@
 import pytest
-import numpy as np
+import torch
 from custom_mha import MultiHeadAttention
 
-def test_mha_forward_shape():
-    # Example input: batch_size=2, seq_len=4, embed_dim=8
-    batch_size, seq_len, embed_dim, num_heads = 2, 4, 8, 2
-    mha = MultiHeadAttention(embed_dim=embed_dim, num_heads=num_heads)
-    x = np.random.randn(batch_size, seq_len, embed_dim).astype(np.float32)
+@pytest.mark.parametrize("batch_size, seq_len, embed_dim, num_heads", [
+    (8, 1024, 768, 12),
+])
+def test_mha_forward_shape(batch_size, seq_len, embed_dim, num_heads):
+    torch.manual_seed(1337)
+    mha = MultiHeadAttention(d_in=embed_dim, d_out=embed_dim, num_heads=num_heads, context_length=seq_len, dropout=0.0)
+    x = torch.rand(batch_size, seq_len, embed_dim)
     output = mha.forward(x)
     # Output shape should match input shape
     assert output.shape == (batch_size, seq_len, embed_dim)
