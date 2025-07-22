@@ -213,12 +213,12 @@ class MultiHeadAttention(torch.nn.Module):
         context_vec = self.out_proj(context_vec.reshape(b, num_tokens, self.d_out))
         return context_vec
 
-d_in = 3
-d_out = 2
-num_heads = 2
-batch_size, context_length, d_in = batch.shape
-mha = MultiHeadAttention(d_in=d_in, d_out=d_out, context_length=context_length,
-                          dropout=0.0, num_heads=num_heads)
-context_vecs = mha(batch)
-print("context_vecs.shape: ", context_vecs.shape)
-print(context_vecs)
+#d_in = 3
+#d_out = 2
+#num_heads = 2
+#batch_size, context_length, d_in = batch.shape
+#mha = MultiHeadAttention(d_in=d_in, d_out=d_out, context_length=context_length,
+#                          dropout=0.0, num_heads=num_heads)
+#context_vecs = mha(batch)
+#print("context_vecs.shape: ", context_vecs.shape)
+#print(context_vecs)
