@@ -20,12 +20,28 @@ class DummyTransformerBlock(nn.Module):
     def forward(self, x):
         return x
 
-class DummyLayerNorm(nn.Module):
-    def __init__(self, normalized_shape, eps=1e-5):
+# goal of the layer norm is to improve training stability and weights convergance 
+# by making mean = 0 and var = 1
+# example usage:
+#batch_example = torch.rand(2, 5)
+#ln = LayerNorm(5)
+#out_Example = ln(batch_example)
+#torch.set_printoptions(sci_mode=False)
+#print(out_Example)
+#print(out_Example.mean(dim=-1, keepdim=True))
+#print(out_Example.var(dim=-1, keepdim=True, unbiased=False))
+class LayerNorm(nn.Module):
+    def __init__(self, emb_dim):
         super().__init__()
+        self.eps = 1e-5
+        self.scale = nn.Parameter(torch.ones(emb_dim))
+        self.shift = nn.Parameter(torch.zeros(emb_dim))
         
-    def forward(self, x):
-        return x 
+    def forward(self, x : torch.Tensor):
+        mean = x.mean(dim=-1, keepdim=True)
+        var = x.var(dim=-1, keepdim=True, unbiased=False)
+        norm_x = (x - mean) / torch.sqrt(var + self.eps)
+        return self.scale * norm_x + self.shift
 
 class DummyGPTModel(nn.Module):
     def __init__(self, cfg):
@@ -36,7 +52,7 @@ class DummyGPTModel(nn.Module):
         self.trf_blocks = nn.Sequential(
             *[DummyTransformerBlock(cfg) for _ in range(cfg["n_layers"])]
         )
-        self.final_nom = DummyLayerNorm(cfg["emb_dim"])
+        self.final_nom = LayerNorm(cfg["emb_dim"])
         self.out_head = nn.Linear(cfg["emb_dim"], cfg["vocab_size"], bias=False)
 
     def forward(self, in_idx : torch.Tensor):
