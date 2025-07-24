@@ -40,3 +40,5 @@
 # debug information files
 *.dwo
 *.pyc
+/samples/BasicLLM/build/lib.win-amd64-cpython-311/*.pyd
+/samples/BasicLLM/build/temp.win-amd64-cpython-311/hip_kernels/*.exp
