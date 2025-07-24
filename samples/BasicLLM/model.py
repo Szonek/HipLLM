@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+import tiktoken
+
 GPT_CONFIG_124M = {
     "vocab_size":     50257,  # BPE tokenizer
     "context_length": 1024,   # max number of tokens model can handle
@@ -29,7 +31,7 @@ class DummyGPTModel(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.tok_emb = nn.Embedding(cfg["vocab_size"], cfg["emb_dim"])
-        self.pos_emb = nn.Embedding(cfg["context_length"], cfg["embd_dim"])
+        self.pos_emb = nn.Embedding(cfg["context_length"], cfg["emb_dim"])
         self.drop_emb = nn.Dropout(cfg["drop_rate"])
         self.trf_blocks = nn.Sequential(
             *[DummyTransformerBlock(cfg) for _ in range(cfg["n_layers"])]
@@ -47,3 +49,19 @@ class DummyGPTModel(nn.Module):
         x = self.final_nom(x)
         logits = self.out_head(x)
         return logits
+
+
+tokenizer = tiktoken.get_encoding("gpt2")
+batch = []
+txt1 = "Every effort moves you"
+txt2 = "Every day holds a"
+batch.append(torch.tensor(tokenizer.encode(txt1)))
+batch.append(torch.tensor(tokenizer.encode(txt2)))
+batch = torch.stack(batch, dim=0)
+print(batch)
+
+torch.manual_seed(123)
+model = DummyGPTModel(GPT_CONFIG_124M)
+logits = model(batch)
+print("Output shape: ", logits.shape)
+print(logits)
