@@ -1,5 +1,9 @@
+import matplotlib.pyplot
 import torch
+import torch.distributions.normal
 import torch.nn as nn
+
+import matplotlib.pyplot as plt
 
 import tiktoken
 
@@ -12,6 +16,58 @@ GPT_CONFIG_124M = {
     "drop_rate":      0.1,    # 0.1 = 10%; used to prevent overfitting
     "qkv_bias":       False   # wheter to include bias in Linear layers of MHA
 }
+
+# approx => y = forward(x * (standard Gaussian distribution))
+class GELU(nn.Module):
+    def __init__(self):
+        super().__init__()
+    
+    def forward(self, x):
+        return 0.5 * x * (1 + torch.tanh(torch.sqrt(torch.tensor(2.0 / torch.pi)) * (x + 0.44715 * torch.pow(x, 3))))
+
+plot_gelu = False
+if plot_gelu:
+    x = torch.linspace(-3, 3, steps=1000)
+    gelu = GELU()
+    g = gelu(x)
+
+    def gaussian_cdf(x):
+        return 0.5 * (1 + torch.erf(x / torch.sqrt(torch.tensor(2.0))))
+    d = x * gaussian_cdf(x)
+    #print(y)
+
+    plt.subplot(1,2, 1)
+    plt.plot(x, g)
+    plt.xlabel('x values')
+    plt.ylabel('y values')
+    plt.title('GELU plot')
+    plt.legend()
+    plt.grid(True)
+
+
+    plt.subplot(1,2, 2)
+    plt.plot(x, d)
+    plt.xlabel('x values')
+    plt.ylabel('y values')
+    plt.title('CDF Gauss plot') #  cumulative distribution function
+    plt.legend()
+    plt.grid(True)
+
+    plt.show()
+
+class FeedForward(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        self.emb_dim = cfg["emb_dim"]
+        self.hidden_dim = 4 * self.emb_dim
+        self.layers = nn.Sequential([
+            nn.Linear(self.emb_dim, self.hidden_dim),
+            GELU,
+            nn.Linear(self.hidden_dim, self.emb_dim)
+        ])
+    
+    def forward(self, x):
+        return self.layers(x)
 
 class DummyTransformerBlock(nn.Module):
     def __init__(self, cfg):
