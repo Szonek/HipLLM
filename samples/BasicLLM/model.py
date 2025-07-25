@@ -27,7 +27,7 @@ class GELU(nn.Module):
 
 plot_gelu = False
 if plot_gelu:
-    x = torch.linspace(-3, 3, steps=1000)
+    x = torch.linspace(-5, 5, steps=1000)
     gelu = GELU()
     g = gelu(x)
 
